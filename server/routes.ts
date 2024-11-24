@@ -18,29 +18,35 @@ function requireAuth(req: Request, res: Response, next: NextFunction) {
 export function registerRoutes(app: Express) {
   // Authentication
   app.post("/api/auth/login", async (req, res) => {
-    try {
-      const { pin } = req.body;
-      const client = await db.query.clients.findFirst({
-        where: eq(clients.pin, pin),
-      });
-      
-      if (!client) {
-        return res.status(401).json({ error: "Invalid PIN" });
+  try {
+    const { pin } = req.body;
+    const client = await db.query.clients.findFirst({
+      where: eq(clients.pin, pin),
+      columns: {
+        clientId: true,
+        firstName: true,
+        lastName: true
       }
-
-      req.session.clientId = client.id;
-      req.session.save((err) => {
-        if (err) {
-          console.error('Session save error:', err);
-          return res.status(500).json({ error: "Failed to login" });
-        }
-        res.json({ success: true });
-      });
-    } catch (error) {
-      console.error('Login error:', error);
-      res.status(500).json({ error: "Failed to login" });
+    });
+    
+    if (!client) {
+      return res.status(401).json({ error: "Invalid PIN" });
     }
-  });
+
+    req.session.clientId = client.clientId;
+    await new Promise((resolve, reject) => {
+      req.session.save((err) => {
+        if (err) reject(err);
+        resolve(true);
+      });
+    });
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: "Failed to login" });
+  }
+});
 
   app.post("/api/auth/logout", (req, res) => {
     req.session.destroy((err) => {
@@ -83,7 +89,7 @@ export function registerRoutes(app: Express) {
 
       const clientBookings = await db.query.bookings.findMany({
         where: eq(bookings.clientId, req.session.clientId),
-        orderBy: (bookings, { asc }) => [asc(bookings.date)],
+        orderBy: (bookings, { asc }) => [asc(bookings.scheduledDateTime)],
       });
 
       res.json(clientBookings);
@@ -102,7 +108,7 @@ export function registerRoutes(app: Express) {
       const suggestedTime = await suggestBookingTime(req.body.date);
       const booking = await db.insert(bookings).values({
         clientId: req.session.clientId,
-        date: suggestedTime,
+        scheduledDateTime: suggestedTime,
         status: "pending",
       }).returning();
 
