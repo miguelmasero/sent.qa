@@ -152,7 +152,8 @@ export async function processMessage(message: string, clientId: number): Promise
   const intents = {
     bookingModification: detectIntent(message, intentPatterns.booking.modification),
     bookingCancellation: detectIntent(message, intentPatterns.booking.cancellation),
-    supplyRequest: detectIntent(message, [...intentPatterns.supplies.request, ...intentPatterns.supplies.inventory]),
+    supplyRequest: detectIntent(message, intentPatterns.supplies.request),
+    supplyInventory: detectIntent(message, intentPatterns.supplies.inventory),
     availabilityQuestion: detectIntent(message, intentPatterns.inquiry.availability),
   };
 
@@ -166,9 +167,10 @@ export async function processMessage(message: string, clientId: number): Promise
   const confidence = sortedIntents[0]?.[1] || 0;
 
   // Create response context
+  const sentimentInfo = analyzeSentiment(message);
   const responseContext = {
-    sentiment: sentimentAnalysis.sentiment,
-    urgency: sentimentAnalysis.urgency,
+    sentiment: sentimentInfo.sentiment,
+    urgency: sentimentInfo.urgency,
     confidence,
     hasSecondaryIntent: !!secondaryIntent,
   };
