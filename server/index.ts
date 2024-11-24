@@ -33,16 +33,13 @@ app.use(session({
     checkPeriod: 86400000,
     ttl: 24 * 60 * 60 * 1000
   }),
-  name: 'sessionId',
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: true,
-  saveUninitialized: false,
-  rolling: true,
+  saveUninitialized: true,
   cookie: {
-    secure: false,
+    secure: false, // Set to false for development
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000,
-    sameSite: 'lax'
+    maxAge: 24 * 60 * 60 * 1000
   }
 }));
 
