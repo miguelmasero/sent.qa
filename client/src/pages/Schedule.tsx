@@ -11,6 +11,7 @@ import { fetchBookings, createBooking } from "../lib/api";
 
 export default function Schedule() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [messages, setMessages] = useState<Array<{type: 'user' | 'ai', text: string}>>([]);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -46,8 +47,22 @@ export default function Schedule() {
     });
   };
 
+  const handlePresetMessage = (type: 'modify' | 'cancel' | 'message' | 'products') => {
+    const messageMap = {
+      modify: "I would like to modify my booking",
+      cancel: "I need to cancel my booking",
+      message: "I want to leave a message",
+      products: "I need to request cleaning products"
+    };
+    
+    setMessages(prev => [...prev, 
+      { type: 'user', text: messageMap[type] },
+      { type: 'ai', text: "I'll help you with that. Please provide more details." }
+    ]);
+  };
+
   return (
-    <div className="container mx-auto p-4 space-y-6">
+    <div className="container mx-auto px-4 py-6 space-y-6">
       <header className="flex justify-between items-center">
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => setLocation("/dashboard")}>
@@ -58,8 +73,8 @@ export default function Schedule() {
         </div>
       </header>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        <Card className="md:col-span-2">
+      <div className="space-y-6">
+        <Card>
           <CardHeader>
             <CardTitle>Select Date & Time</CardTitle>
           </CardHeader>
@@ -82,6 +97,44 @@ export default function Schedule() {
 
         <Card>
           <CardHeader>
+            <CardTitle>AI Assistant</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-2">
+                <Button variant="outline" className="w-full" onClick={() => handlePresetMessage("modify")}>
+                  Modify Booking
+                </Button>
+                <Button variant="outline" className="w-full" onClick={() => handlePresetMessage("cancel")}>
+                  Cancel Booking
+                </Button>
+                <Button variant="outline" className="w-full" onClick={() => handlePresetMessage("message")}>
+                  Leave Message
+                </Button>
+                <Button variant="outline" className="w-full" onClick={() => handlePresetMessage("products")}>
+                  Products Needed
+                </Button>
+              </div>
+              <div className="h-[200px] overflow-y-auto border rounded p-4 space-y-4">
+                {messages.map((msg, i) => (
+                  <div key={i} className={`${msg.type === 'user' ? 'text-right' : ''}`}>
+                    <p className={`inline-block p-2 rounded ${
+                      msg.type === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                    }`}>
+                      {msg.text}
+                    </p>
+                  </div>
+                ))}
+                {messages.length === 0 && (
+                  <p className="text-muted-foreground">How can I assist you with scheduling?</p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Booking Guidelines</CardTitle>
           </CardHeader>
           <CardContent className="prose">
@@ -92,24 +145,6 @@ export default function Schedule() {
               <li>Please book at least 24 hours in advance</li>
               <li>Cancellations must be made 48 hours before appointment</li>
             </ul>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>AI Assistant</CardTitle>
-          </CardHeader>
-          <CardContent className="prose">
-            <div className="h-[300px] overflow-y-auto border rounded p-4 space-y-4">
-              {/* AI Chat messages will go here */}
-              <p className="text-muted-foreground">How can I assist you with scheduling?</p>
-            </div>
-            <div className="mt-4 flex gap-2">
-              <Input placeholder="Type your message..." />
-              <Button variant="outline">
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
           </CardContent>
         </Card>
       </div>
