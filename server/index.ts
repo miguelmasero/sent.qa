@@ -25,7 +25,13 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+import MemoryStore from 'memorystore';
+const sessionStore = MemoryStore(session);
+
 app.use(session({
+  store: new sessionStore({
+    checkPeriod: 86400000 // prune expired entries every 24h
+  }),
   secret: 'your-secret-key',
   resave: false,
   saveUninitialized: false,
