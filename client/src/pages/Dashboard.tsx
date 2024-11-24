@@ -12,6 +12,7 @@ import { fetchBookings, fetchClientInfo, createBooking } from "../lib/api";
 export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [messages, setMessages] = useState<Array<{type: 'user' | 'ai', text: string}>>([]);
+  const [threadId, setThreadId] = useState<string>();
   const [inputMessage, setInputMessage] = useState('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -76,23 +77,14 @@ export default function Dashboard() {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: inputMessage }),
+        body: JSON.stringify({ message: inputMessage, threadId }),
       });
 
       if (!response.ok) throw new Error("Failed to get AI response");
       
-      const aiResponse = await response.json();
-      
-      setMessages(prev => [...prev, { type: 'ai', text: aiResponse.text }]);
-      
-      // Handle different AI actions
-      if (aiResponse.action === "show_calendar") {
-        setSelectedDate(undefined);
-      } else if (aiResponse.action === "show_bookings" && aiResponse.data) {
-        queryClient.setQueryData(["bookings"], aiResponse.data);
-      } else if (aiResponse.action === "show_supplies") {
-        queryClient.invalidateQueries({ queryKey: ["supplies"] });
-      }
+      const { message, threadId: newThreadId } = await response.json();
+      setThreadId(newThreadId);
+      setMessages(prev => [...prev, { type: 'ai', text: message }]);
     } catch (error) {
       console.error('AI response error:', error);
       toast({

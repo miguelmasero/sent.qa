@@ -3,7 +3,7 @@ import { db } from "../db";
 import { clients, bookings, supplies } from "@db/schema";
 import { eq } from "drizzle-orm";
 import { suggestBookingTime } from "./ai";
-import { processMessage } from "./aiAssistant";
+import { handleChat } from './openai';
 
 const WEBHOOK_URL = process.env.WEBHOOK_URL;
 
@@ -156,8 +156,8 @@ export function registerRoutes(app: Express) {
         return res.status(401).json({ error: "Unauthorized" });
       }
 
-      const { message } = req.body;
-      const response = await processMessage(message, req.session.clientId);
+      const { message, threadId } = req.body;
+      const response = await handleChat(message, threadId);
       res.json(response);
     } catch (error) {
       console.error('Chat processing error:', error);
