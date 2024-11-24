@@ -1,6 +1,6 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { db } from "../db";
-import { clients, bookings, supplies } from "@db/schema";
+import { clients, bookings, interactions } from "@db/schema";
 import { eq } from "drizzle-orm";
 import { suggestBookingTime } from "./ai";
 import { handleChat } from './openai';
@@ -157,7 +157,23 @@ export function registerRoutes(app: Express) {
       }
 
       const { message, threadId } = req.body;
-      const response = await handleChat(message, threadId);
+      
+      // Process message with enhanced NLP
+      const nlpResponse = await processMessage(message, req.session.clientId);
+      
+      // Get OpenAI response
+      const aiResponse = await handleChat(message, threadId);
+      
+      // Combine NLP and AI responses for more contextual awareness
+      const response = {
+        ...aiResponse,
+        nlpContext: {
+          intent: nlpResponse.action,
+          confidence: nlpResponse.confidence,
+          suggestedAction: nlpResponse.action
+        }
+      };
+      
       res.json(response);
     } catch (error) {
       console.error('Chat processing error:', error);
