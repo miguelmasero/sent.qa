@@ -12,7 +12,6 @@ import { fetchBookings, fetchClientInfo, createBooking } from "../lib/api";
 export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [messages, setMessages] = useState<Array<{type: 'user' | 'ai', text: string}>>([]);
-  const [threadId, setThreadId] = useState<string>();
   const [inputMessage, setInputMessage] = useState('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -49,8 +48,7 @@ export default function Dashboard() {
   const handleScheduleBooking = () => {
     if (!selectedDate) return;
     createBookingMutation.mutate({
-      scheduledDateTime: selectedDate,
-      status: 'scheduled'
+      date: selectedDate,
     });
   };
 
@@ -68,38 +66,19 @@ export default function Dashboard() {
     ]);
   };
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = () => {
     if (!inputMessage.trim()) return;
-    
-    setMessages(prev => [...prev, { type: 'user', text: inputMessage }]);
+    setMessages(prev => [...prev, 
+      { type: 'user', text: inputMessage },
+      { type: 'ai', text: "I'll help you with that request." }
+    ]);
     setInputMessage('');
-
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: inputMessage, threadId }),
-      });
-
-      if (!response.ok) throw new Error("Failed to get AI response");
-      
-      const { message, threadId: newThreadId } = await response.json();
-      setThreadId(newThreadId);
-      setMessages(prev => [...prev, { type: 'ai', text: message }]);
-    } catch (error) {
-      console.error('AI response error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to get AI response",
-        variant: "destructive",
-      });
-    }
   };
 
   return (
     <div className="container mx-auto p-4 space-y-6">
       <header className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Welcome, {clientInfo ? `${clientInfo.firstName} ${clientInfo.lastName}` : ''}</h1>
+        <h1 className="text-3xl font-bold">Welcome, {clientInfo?.name}</h1>
         <NotesDialog />
       </header>
 
