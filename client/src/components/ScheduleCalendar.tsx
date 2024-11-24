@@ -50,8 +50,7 @@ export default function ScheduleCalendar({ bookings, selectedDate, onSelectDate 
           const tomorrow = addDays(new Date(), 1);
           return (
             date < tomorrow ||
-            date.getDay() === 0 ||
-            date.getDay() === 6
+            date.getDay() === 5  // 5 is Friday
           );
         }}
         className="rounded-md border"
