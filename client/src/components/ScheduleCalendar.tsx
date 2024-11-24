@@ -17,7 +17,7 @@ const timeSlots = [
 export default function ScheduleCalendar({ bookings, selectedDate, onSelectDate }: ScheduleCalendarProps) {
   const isDateBooked = (date: Date) => {
     return bookings.some(booking => 
-      startOfDay(new Date(booking.date)).getTime() === startOfDay(date).getTime()
+      startOfDay(new Date(booking.scheduledDateTime)).getTime() === startOfDay(date).getTime()
     );
   };
 
