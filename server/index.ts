@@ -30,17 +30,19 @@ const sessionStore = MemoryStore(session);
 
 app.use(session({
   store: new sessionStore({
-    checkPeriod: 86400000, // prune expired entries every 24h
-    ttl: 24 * 60 * 60 * 1000 // Session TTL (24 hours)
+    checkPeriod: 86400000,
+    ttl: 24 * 60 * 60 * 1000
   }),
+  name: 'sessionId',
   secret: process.env.SESSION_SECRET || 'your-secret-key',
-  resave: false,
+  resave: true,
   saveUninitialized: false,
-  rolling: true, // Refresh session with each request
+  rolling: true,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: false,
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    maxAge: 24 * 60 * 60 * 1000,
+    sameSite: 'lax'
   }
 }));
 
