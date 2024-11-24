@@ -30,11 +30,13 @@ const sessionStore = MemoryStore(session);
 
 app.use(session({
   store: new sessionStore({
-    checkPeriod: 86400000 // prune expired entries every 24h
+    checkPeriod: 86400000, // prune expired entries every 24h
+    ttl: 24 * 60 * 60 * 1000 // Session TTL (24 hours)
   }),
-  secret: 'your-secret-key',
+  secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
   saveUninitialized: false,
+  rolling: true, // Refresh session with each request
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
