@@ -8,14 +8,12 @@ import { Toaster } from "@/components/ui/toaster";
 
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
-import Schedule from "./pages/Schedule";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Login} />
       <Route path="/dashboard" component={Dashboard} />
-      <Route path="/schedule" component={Schedule} />
       <Route>404 Page Not Found</Route>
     </Switch>
   );
