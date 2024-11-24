@@ -38,7 +38,7 @@ export default function Schedule() {
   const handleScheduleBooking = () => {
     if (!selectedDate) return;
     createBookingMutation.mutate({
-      date: selectedDate.toISOString(),
+      date: selectedDate,
     });
   };
 
