@@ -40,11 +40,16 @@ export default function ScheduleCalendar({ bookings, selectedDate, onSelectDate 
         mode="single"
         selected={selectedDate}
         onSelect={handleDateSelect}
+        modifiers={{
+          booked: (date) => isDateBooked(date)
+        }}
+        modifiersStyles={{
+          booked: { backgroundColor: 'hsl(220, 13%, 91%)' }  // stone-400 equivalent
+        }}
         disabled={(date) => {
           const tomorrow = addDays(new Date(), 1);
           return (
             date < tomorrow ||
-            isDateBooked(date) ||
             date.getDay() === 0 ||
             date.getDay() === 6
           );
