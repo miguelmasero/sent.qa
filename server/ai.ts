@@ -8,8 +8,8 @@ export async function suggestBookingTime(requestedDate: string): Promise<Date> {
   const date = new Date(requestedDate);
   const existingBookings = await db.query.bookings.findMany({
     where: and(
-      gte(bookings.scheduledDateTime, startOfDay(date)),
-      lte(bookings.scheduledDateTime, endOfDay(date))
+      gte(bookings.date, startOfDay(date)),
+      lte(bookings.date, endOfDay(date))
     ),
   });
 
