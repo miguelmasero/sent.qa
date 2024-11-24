@@ -52,14 +52,19 @@ export function registerRoutes(app: Express) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    const suggestedTime = await suggestBookingTime(req.body.date);
-    const booking = await db.insert(bookings).values({
-      clientId: req.session.clientId,
-      date: suggestedTime,
-      status: "pending",
-    }).returning();
+    try {
+      const suggestedTime = await suggestBookingTime(req.body.date);
+      const booking = await db.insert(bookings).values({
+        clientId: req.session.clientId,
+        date: suggestedTime,
+        status: "pending",
+      }).returning();
 
-    res.json(booking[0]);
+      res.json(booking[0]);
+    } catch (error) {
+      console.error('Booking creation error:', error);
+      res.status(500).json({ error: "Failed to create booking" });
+    }
   });
 
   // Supplies
