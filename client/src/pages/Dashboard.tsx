@@ -49,7 +49,8 @@ export default function Dashboard() {
   const handleScheduleBooking = () => {
     if (!selectedDate) return;
     createBookingMutation.mutate({
-      date: selectedDate,
+      scheduledDateTime: selectedDate,
+      status: 'scheduled'
     });
   };
 
@@ -98,7 +99,7 @@ export default function Dashboard() {
   return (
     <div className="container mx-auto p-4 space-y-6">
       <header className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Welcome, {clientInfo?.name}</h1>
+        <h1 className="text-3xl font-bold">Welcome, {clientInfo ? `${clientInfo.firstName} ${clientInfo.lastName}` : ''}</h1>
         <NotesDialog />
       </header>
 

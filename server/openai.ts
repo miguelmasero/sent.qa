@@ -56,8 +56,9 @@ export async function handleChat(message: string, threadId?: string) {
   const messages = await openai.beta.threads.messages.list(thread.id);
   const lastMessage = messages.data[0];
 
+  const messageContent = lastMessage.content[0];
   return {
-    message: lastMessage.content[0].text.value,
+    message: messageContent.type === 'text' ? messageContent.text.value : 'Unable to process response',
     threadId: thread.id
   };
 }
