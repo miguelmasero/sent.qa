@@ -104,26 +104,12 @@ export default function Dashboard() {
       </Card>
 
       <Card>
-        <CardContent>
+        <CardContent className="p-4">
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" className="w-full" onClick={() => handlePresetMessage("modify")}>
-                Modify Booking
-              </Button>
-              <Button variant="outline" className="w-full" onClick={() => handlePresetMessage("cancel")}>
-                Cancel Booking
-              </Button>
-              <Button variant="outline" className="w-full" onClick={() => handlePresetMessage("message")}>
-                Leave Message
-              </Button>
-              <Button variant="outline" className="w-full" onClick={() => handlePresetMessage("products")}>
-                Products Needed
-              </Button>
-            </div>
-            <div className="h-[200px] overflow-y-auto border rounded p-4 space-y-4">
+            <div className="h-[200px] overflow-y-auto border rounded p-4 space-y-2">
               {messages.map((msg, i) => (
                 <div key={i} className={`${msg.type === 'user' ? 'text-right' : ''}`}>
-                  <p className={`inline-block p-2 rounded ${
+                  <p className={`inline-block p-2 rounded text-sm ${
                     msg.type === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'
                   }`}>
                     {msg.text}
@@ -131,17 +117,34 @@ export default function Dashboard() {
                 </div>
               ))}
               {messages.length === 0 && (
-                <p className="text-muted-foreground">How can I assist you with scheduling?</p>
+                <p className="text-sm text-muted-foreground">How can I assist you with scheduling?</p>
               )}
             </div>
+            
+            <div className="grid grid-cols-2 gap-2 mt-4">
+              <Button variant="outline" size="sm" className="w-full text-sm" onClick={() => handlePresetMessage("modify")}>
+                Modify Booking
+              </Button>
+              <Button variant="outline" size="sm" className="w-full text-sm" onClick={() => handlePresetMessage("cancel")}>
+                Cancel Booking
+              </Button>
+              <Button variant="outline" size="sm" className="w-full text-sm" onClick={() => handlePresetMessage("message")}>
+                Leave Message
+              </Button>
+              <Button variant="outline" size="sm" className="w-full text-sm" onClick={() => handlePresetMessage("products")}>
+                Products Needed
+              </Button>
+            </div>
+
             <div className="flex gap-2">
               <Input 
                 value={inputMessage} 
                 onChange={(e) => setInputMessage(e.target.value)}
                 placeholder="Type your message..."
+                className="text-sm"
                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
               />
-              <Button variant="outline" onClick={handleSendMessage}>
+              <Button variant="outline" size="sm" onClick={handleSendMessage}>
                 <Send className="h-4 w-4" />
               </Button>
             </div>
