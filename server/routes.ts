@@ -3,6 +3,7 @@ import { db } from "../db";
 import { clients, bookings, supplies } from "@db/schema";
 import { eq } from "drizzle-orm";
 import { suggestBookingTime } from "./ai";
+import { processMessage } from "./aiAssistant";
 
 const WEBHOOK_URL = process.env.WEBHOOK_URL;
 
@@ -147,6 +148,20 @@ export function registerRoutes(app: Express) {
     } catch (error) {
       console.error('Supplies fetch error:', error);
       res.status(500).json({ error: "Failed to fetch supplies" });
+    }
+  });
+  app.post("/api/chat", requireAuth, async (req, res) => {
+    try {
+      if (!req.session.clientId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const { message } = req.body;
+      const response = await processMessage(message, req.session.clientId);
+      res.json(response);
+    } catch (error) {
+      console.error('Chat processing error:', error);
+      res.status(500).json({ error: "Failed to process message" });
     }
   });
 }

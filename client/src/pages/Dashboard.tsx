@@ -66,13 +66,41 @@ export default function Dashboard() {
     ]);
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
-    setMessages(prev => [...prev, 
-      { type: 'user', text: inputMessage },
-      { type: 'ai', text: "I'll help you with that request." }
-    ]);
+    
+    setMessages(prev => [...prev, { type: 'user', text: inputMessage }]);
     setInputMessage('');
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: inputMessage }),
+      });
+
+      if (!response.ok) throw new Error("Failed to get AI response");
+      
+      const aiResponse = await response.json();
+      
+      setMessages(prev => [...prev, { type: 'ai', text: aiResponse.text }]);
+      
+      // Handle different AI actions
+      if (aiResponse.action === "show_calendar") {
+        setSelectedDate(undefined);
+      } else if (aiResponse.action === "show_bookings" && aiResponse.data) {
+        queryClient.setQueryData(["bookings"], aiResponse.data);
+      } else if (aiResponse.action === "show_supplies") {
+        queryClient.invalidateQueries({ queryKey: ["supplies"] });
+      }
+    } catch (error) {
+      console.error('AI response error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to get AI response",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
