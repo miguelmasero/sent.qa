@@ -70,13 +70,18 @@ export default function Login() {
                         type="password"
                         maxLength={4}
                         pattern="\d{4}"
+                        inputMode="numeric"
                         className="text-center text-2xl tracking-widest"
                       />
                     </FormControl>
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full">
+              <Button 
+                type="submit" 
+                variant="outline" 
+                className="w-full bg-black text-white hover:bg-gray-800"
+              >
                 Login
               </Button>
             </form>
