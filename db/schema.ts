@@ -10,6 +10,7 @@ export const clients = pgTable("clients", {
   lastName: text("last_name").notNull(),
   phone: text("phone").notNull(),
   email: text("email").notNull(),
+  pin: text("pin").notNull(),
   preferences: jsonb("preferences"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

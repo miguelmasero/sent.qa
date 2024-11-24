@@ -1,6 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
+import { processMessage } from "./aiAssistant";
+import { bookings, clients, supplies, interactions } from "@db/schema";
 import { db } from "../db";
-import { clients, bookings, interactions } from "@db/schema";
 import { eq } from "drizzle-orm";
 import { suggestBookingTime } from "./ai";
 import { handleChat } from './openai';
