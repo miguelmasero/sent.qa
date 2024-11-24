@@ -1,8 +1,15 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { db } from "../db";
 import { clients, bookings, supplies } from "@db/schema";
 import { eq } from "drizzle-orm";
 import { suggestBookingTime } from "./ai";
+
+function requireAuth(req: Request, res: Response, next: NextFunction) {
+  if (!req.session.clientId) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  next();
+}
 
 export function registerRoutes(app: Express) {
   // Authentication
@@ -18,6 +25,7 @@ export function registerRoutes(app: Express) {
       }
 
       req.session.clientId = client.id;
+      await new Promise((resolve) => req.session.save(resolve));
       res.json({ success: true });
     } catch (error) {
       console.error('Login error:', error);
@@ -36,7 +44,7 @@ export function registerRoutes(app: Express) {
   });
 
   // Client info
-  app.get("/api/client", async (req, res) => {
+  app.get("/api/client", requireAuth, async (req, res) => {
     try {
       if (!req.session.clientId) {
         return res.status(401).json({ error: "Unauthorized" });
@@ -58,7 +66,7 @@ export function registerRoutes(app: Express) {
   });
 
   // Bookings
-  app.get("/api/bookings", async (req, res) => {
+  app.get("/api/bookings", requireAuth, async (req, res) => {
     try {
       if (!req.session.clientId) {
         return res.status(401).json({ error: "Unauthorized" });
@@ -97,7 +105,7 @@ export function registerRoutes(app: Express) {
   });
 
   // Supplies
-  app.get("/api/supplies", async (req, res) => {
+  app.get("/api/supplies", requireAuth, async (req, res) => {
     try {
       if (!req.session.clientId) {
         return res.status(401).json({ error: "Unauthorized" });
