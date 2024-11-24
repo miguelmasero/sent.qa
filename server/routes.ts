@@ -4,6 +4,8 @@ import { clients, bookings, supplies } from "@db/schema";
 import { eq } from "drizzle-orm";
 import { suggestBookingTime } from "./ai";
 
+const WEBHOOK_URL = process.env.WEBHOOK_URL;
+
 function requireAuth(req: Request, res: Response, next: NextFunction) {
   if (!req.session.clientId) {
     return res.status(401).json({ error: "Unauthorized" });
@@ -101,6 +103,27 @@ export function registerRoutes(app: Express) {
         date: suggestedTime,
         status: "pending",
       }).returning();
+
+      // Get client info for webhook
+      const client = await db.query.clients.findFirst({
+        where: eq(clients.id, req.session.clientId),
+      });
+
+      if (WEBHOOK_URL) {
+        try {
+          await fetch(WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              event: 'booking_created',
+              booking: booking[0],
+              client: client
+            })
+          });
+        } catch (error) {
+          console.error('Webhook notification failed:', error);
+        }
+      }
 
       res.json(booking[0]);
     } catch (error) {
