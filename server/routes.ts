@@ -27,18 +27,19 @@ export function registerRoutes(app: Express) {
         return res.status(401).json({ error: "Invalid PIN" });
       }
 
+      // Missing code to handle successful login
+    req.session.clientId = client.id;
+    res.json({ success: true });
 
-  
-    
-
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({ error: "Failed to login" });
+    }
+  });
 
   // Bookings
   app.get("/api/bookings", requireAuth, async (req, res) => {
     try {
-      if (!req.session.clientId) {
-        return res.status(401).json({ error: "Unauthorized" });
-      }
-
       const clientBookings = await db.query.bookings.findMany({
         where: eq(bookings.clientId, req.session.clientId),
         orderBy: (bookings, { asc }) => [asc(bookings.date)],
@@ -51,12 +52,8 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  app.post("/api/bookings", async (req, res) => {
+  app.post("/api/bookings", requireAuth, async (req, res) => {
     try {
-      if (!req.session.clientId) {
-        return res.status(401).json({ error: "Unauthorized" });
-      }
-
       const suggestedTime = await suggestBookingTime(req.body.date);
       const booking = await db.insert(bookings).values({
         clientId: req.session.clientId,
@@ -95,10 +92,6 @@ export function registerRoutes(app: Express) {
   // Supplies
   app.get("/api/supplies", requireAuth, async (req, res) => {
     try {
-      if (!req.session.clientId) {
-        return res.status(401).json({ error: "Unauthorized" });
-      }
-
       const clientSupplies = await db.query.supplies.findMany({
         where: eq(supplies.clientId, req.session.clientId),
       });
@@ -109,22 +102,25 @@ export function registerRoutes(app: Express) {
       res.status(500).json({ error: "Failed to fetch supplies" });
     }
   });
+
   // AI Message Processing with Enhanced NLP
   app.post("/api/chat", requireAuth, async (req, res) => {
     const startTime = Date.now();
     
     try {
-      if (!req.session.clientId) {
-        return res.status(401).json({ error: "Unauthorized" });
-      }
-
       const { message } = req.body;
       if (!message) {
         return res.status(400).json({ error: "Message is required" });
       }
 
+      // Ensure clientId is defined before processing
+      const clientId = req.session.clientId;
+      if (typeof clientId !== 'number') {
+        throw new Error('Invalid clientId');
+      }
+
       // Process message with enhanced NLP
-      const response = await processMessage(message, req.session.clientId);
+      const response = await processMessage(message, clientId);
 
       // Calculate processing time for monitoring
       const processingTime = Date.now() - startTime;
