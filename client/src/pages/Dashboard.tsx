@@ -66,12 +66,34 @@ export default function Dashboard() {
     ]);
   };
 
+  const sendMessageMutation = useMutation({
+    mutationFn: async (message: string) => {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message }),
+      });
+      if (!response.ok) throw new Error("Failed to send message");
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setMessages(prev => [...prev, 
+        { type: 'ai', text: data.response }
+      ]);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to process message",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleSendMessage = () => {
     if (!inputMessage.trim()) return;
-    setMessages(prev => [...prev, 
-      { type: 'user', text: inputMessage },
-      { type: 'ai', text: "I'll help you with that request." }
-    ]);
+    setMessages(prev => [...prev, { type: 'user', text: inputMessage }]);
+    sendMessageMutation.mutate(inputMessage);
     setInputMessage('');
   };
 
@@ -122,7 +144,7 @@ export default function Dashboard() {
             </div>
             
             <div className="grid grid-cols-2 gap-2 mt-4">
-              <Button variant="outline" size="sm" className="w-full text-sm" onClick={() => handlePresetMessage("modify")}>
+              <Button variant="outline" size="sm" className="w-full text-sm hover:bg-accent" onClick={() => handlePresetMessage("modify")}>
                 Modify Booking
               </Button>
               <Button variant="outline" size="sm" className="w-full text-sm" onClick={() => handlePresetMessage("cancel")}>

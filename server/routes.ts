@@ -3,6 +3,7 @@ import { db } from "../db";
 import { clients, bookings, supplies } from "@db/schema";
 import { eq } from "drizzle-orm";
 import { suggestBookingTime } from "./ai";
+import { processMessage } from "./nlp.js";
 
 const WEBHOOK_URL = process.env.WEBHOOK_URL;
 
@@ -26,51 +27,10 @@ export function registerRoutes(app: Express) {
         return res.status(401).json({ error: "Invalid PIN" });
       }
 
-      req.session.clientId = client.id;
-      req.session.save((err) => {
-        if (err) {
-          console.error('Session save error:', err);
-          return res.status(500).json({ error: "Failed to login" });
-        }
-        res.json({ success: true });
-      });
-    } catch (error) {
-      console.error('Login error:', error);
-      res.status(500).json({ error: "Failed to login" });
-    }
-  });
 
-  app.post("/api/auth/logout", (req, res) => {
-    req.session.destroy((err) => {
-      if (err) {
-        console.error('Logout error:', err);
-        return res.status(500).json({ error: "Failed to logout" });
-      }
-      res.json({ success: true });
-    });
-  });
+  
+    
 
-  // Client info
-  app.get("/api/client", requireAuth, async (req, res) => {
-    try {
-      if (!req.session.clientId) {
-        return res.status(401).json({ error: "Unauthorized" });
-      }
-
-      const client = await db.query.clients.findFirst({
-        where: eq(clients.id, req.session.clientId),
-      });
-      
-      if (!client) {
-        return res.status(404).json({ error: "Client not found" });
-      }
-      
-      res.json(client);
-    } catch (error) {
-      console.error('Client fetch error:', error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
 
   // Bookings
   app.get("/api/bookings", requireAuth, async (req, res) => {
@@ -147,6 +107,52 @@ export function registerRoutes(app: Express) {
     } catch (error) {
       console.error('Supplies fetch error:', error);
       res.status(500).json({ error: "Failed to fetch supplies" });
+    }
+  });
+  // AI Message Processing with Enhanced NLP
+  app.post("/api/chat", requireAuth, async (req, res) => {
+    const startTime = Date.now();
+    
+    try {
+      if (!req.session.clientId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const { message } = req.body;
+      if (!message) {
+        return res.status(400).json({ error: "Message is required" });
+      }
+
+      // Process message with enhanced NLP
+      const response = await processMessage(message, req.session.clientId);
+
+      // Calculate processing time for monitoring
+      const processingTime = Date.now() - startTime;
+
+      // Enhanced logging with timing and session info
+      console.log(`[NLP] Processing completed in ${processingTime}ms:`, {
+        clientId: req.session.clientId,
+        messageLength: message.length,
+        responseLength: response.length,
+        processingTime
+      });
+
+      res.json({ 
+        response,
+        success: true,
+        processed_in_ms: processingTime
+      });
+    } catch (error) {
+      console.error('[NLP] Processing error:', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        processingTime: Date.now() - startTime
+      });
+
+      res.status(500).json({ 
+        error: "Failed to process message",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 }
